@@ -1,0 +1,1 @@
+ansible-playbook -i inventory/raspberrypi.yml playbooks/setup_fullpageos.yml --ask-become-pass

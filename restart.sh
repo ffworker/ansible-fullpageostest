@@ -1,0 +1,1 @@
+ansible -i inventory/raspberrypi.yml all -a "sudo reboot"
