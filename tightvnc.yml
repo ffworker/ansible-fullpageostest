@@ -1,0 +1,62 @@
+- name: Install TightVNC server
+  apt:
+    name: tightvncserver
+    state: present
+
+- name: Ensure .vnc directory exists for logserv-it
+  file:
+    path: /home/logserv-it/.vnc
+    state: directory
+    owner: logserv-it
+    group: logserv-it
+    mode: '0700'
+
+- name: Set VNC password for logserv-it user
+  expect:
+    command: "vncpasswd"
+    responses:
+      'Password:': "29Logserv75\n"
+      'Verify:': "29Logserv75\n"
+      'Would you like to enter a view-only password (y/n)?': "n\n"
+    creates: "/home/logserv-it/.vnc/passwd"
+  become: true
+  become_user: logserv-it
+
+- name: Enable TightVNC service on boot
+  copy:
+    dest: /etc/systemd/system/tightvncserver.service
+    content: |
+      [Unit]
+      Description=TightVNC Server
+      After=syslog.target network.target
+
+      [Service]
+      Type=forking
+      User=logserv-it
+      PIDFile=/home/logserv-it/.vnc/%H:1.pid
+      ExecStartPre=-/usr/bin/vncserver -kill :1 > /dev/null 2>&1
+      ExecStart=/usr/bin/vncserver :1
+      ExecStop=/usr/bin/vncserver -kill :1
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: Reload systemd
+
+- name: Enable TightVNC systemd service
+  systemd:
+    name: tightvncserver.service
+    enabled: true
+    state: started
+
+- name: Mount /boot partition manually
+  mount:
+    path: /mnt
+    src: /dev/mmcblk0p1
+    fstype: vfat
+    state: mounted
+
+- name: Set FullPageOS URL
+  template:
+    src: fullpageos.txt.j2
+    dest: /mnt/fullpageos.txt
+  tags: set_url

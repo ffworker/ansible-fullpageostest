@@ -1,0 +1,5 @@
+- name: Configure FullPageOS on Raspberry Pi
+  hosts: fullpagepi
+  become: true
+  roles:
+    - vnc_setup

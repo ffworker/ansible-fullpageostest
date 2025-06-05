@@ -1,0 +1,48 @@
+- name: Ensure Python and dependencies are installed
+  apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-pexpect
+    state: present
+    update_cache: yes
+
+- name: Install x11vnc
+  apt:
+    name: x11vnc
+    state: present
+
+- name: Create systemd service for x11vnc
+  copy:
+    dest: /etc/systemd/system/x11vnc.service
+    content: |
+      [Unit]
+      Description=Start x11vnc on boot to share :0 display
+      After=multi-user.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/x11vnc -display :0 -forever -nopw -auth guess
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable x11vnc systemd service
+  systemd:
+    name: x11vnc.service
+    enabled: true
+    state: started
+
+- name: Mount /boot partition manually
+  mount:
+    path: /mnt
+    src: /dev/mmcblk0p1
+    fstype: vfat
+    state: mounted
+
+- name: Set FullPageOS URL
+  template:
+    src: fullpageos.txt.j2
+    dest: /mnt/fullpageos.txt
+  tags: set_url

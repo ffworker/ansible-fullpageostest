@@ -1,0 +1,7 @@
+all:
+  hosts:
+    fullpagepi:
+      ansible_host: 172.17.0.152
+      ansible_user: logserv-it
+      ansible_password: 29Logserv75
+      ansible_become: true
